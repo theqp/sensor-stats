@@ -1,61 +1,74 @@
-# Example sbt project that compiles using Scala 3
+# Sensor Statistics Task
 
-[![Continuous Integration](https://github.com/scala/scala3-example-project/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/scala/scala3-example-project/actions/workflows/ci.yml)
+Create a command line program that calculates statistics from humidity sensor data.
 
-## Usage
+### Background story
 
-This is a normal sbt project, you can compile code with `sbt compile` and run it
-with `sbt run`, `sbt console` will start a Scala 3 REPL.
+The sensors are in a network, and they are divided into groups. Each sensor submits its data to its group leader.
+Each leader produces a daily report file for a group. The network periodically re-balances itself, so the sensors could
+change the group assignment over time, and their measurements can be reported by different leaders. The program should
+help spot sensors with highest average humidity.
 
-If compiling this example project fails, you probably have a global sbt plugin
-that does not work with Scala 3, try to disable all plugins in
-`~/.sbt/1.0/plugins` and `~/.sbt/1.0`.
+## Input
 
-### IDE support
+- Program takes one argument: a path to directory
+- Directory contains many CSV files (*.csv), each with a daily report from one group leader
+- Format of the file: 1 header line + many lines with measurements
+- Measurement line has sensor id and the humidity value
+- Humidity value is integer in range `[0, 100]` or `NaN` (failed measurement)
+- The measurements for the same sensor id can be in the different files
 
-Scala 3 comes built-in with IDE support, to try it out see
-[IDE support for Scala 3](http://dotty.epfl.ch/docs/usage/ide-support.html)
+### Example
 
-## Making a new Scala 3 project
-
-The fastest way to start a new Scala 3 project is to use one of the following templates:
-
-* [Minimal Scala 3 project](https://github.com/scala/scala3.g8)
-* [Scala 3 project that cross-compiles with Scala 2](https://github.com/scala/scala3-cross.g8)
-
-## Using Scala 3 in an existing project
-
-You will need to make the following adjustments to your build:
-
-### project/build.properties
-
-```scala
-sbt.version=1.5.5
+leader-1.csv
+```
+sensor-id,humidity
+s1,10
+s2,88
+s1,NaN
 ```
 
-You must use sbt 1.5.5 or newer; older versions of sbt are not supported.
-
-### build.sbt
-
-Set up the Scala 3 version:
-
-```scala
-scalaVersion := "3.1.0"
+leader-2.csv
+```
+sensor-id,humidity
+s2,80
+s3,NaN
+s2,78
+s1,98
 ```
 
-### Getting your project to compile with Scala 3
+## Expected Output
 
-For help with porting an existing Scala 2 project to Scala 3, see the
-[Scala 3 migration guide](https://scalacenter.github.io/scala-3-migration-guide/).
+- Program prints statistics to StdOut
+- It reports how many files it processed
+- It reports how many measurements it processed
+- It reports how many measurements failed
+- For each sensor it calculates min/avg/max humidity
+- `NaN` values are ignored from min/avg/max
+- Sensors with only `NaN` measurements have min/avg/max as `NaN/NaN/NaN`
+- Program sorts sensors by highest avg humidity (`NaN` values go last)
 
-#### Nightly builds
+### Example
 
-If the latest release of Scala 3 is missing a bugfix or feature you need, you may
-wish to use a nightly build. Look at the bottom of the list of
-[releases](https://repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/)
-to find the version number for the latest nightly build.
+```
+Num of processed files: 2
+Num of processed measurements: 7
+Num of failed measurements: 2
 
-## Discuss
+Sensors with highest avg humidity:
 
-Feel free to come chat with us on the
-[Scala 3 gitter](http://gitter.im/lampepfl/dotty)!
+sensor-id,min,avg,max
+s2,78,82,88
+s1,10,54,98
+s3,NaN,NaN,NaN
+```
+
+## Notes
+
+- Single daily report file can be very large, and can exceed program memory
+- Program should only use memory for its internal state (no disk, no database)
+- Any open source library can be used (besides Spark) 
+- Please use vanilla scala, akka-stream, monix or similar technology. 
+- You're more than welcome to implement a purely functional solution using cats-effect, fs2 and/or ZIO to impress, 
+  but this is not a mandatory requirement. 
+- Sensible tests are welcome
