@@ -1,3 +1,3 @@
-@main
-def Main(args: String*): Unit =
-  println("hello world")
+import cats.effect.{IO, IOApp}
+object Main extends IOApp.Simple:
+  val run = IO.println("hello world")
