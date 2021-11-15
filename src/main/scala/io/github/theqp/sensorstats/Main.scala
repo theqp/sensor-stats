@@ -1,3 +1,5 @@
+package io.github.theqp.sensorstats
+
 import cats.effect.{IO, IOApp}
 import cats.effect.kernel.Resource
 import cats.effect.ExitCode
