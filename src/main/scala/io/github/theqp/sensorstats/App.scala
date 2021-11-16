@@ -1,12 +1,12 @@
 package io.github.theqp.sensorstats
 
-import cats.effect.IOApp
-import cats.effect.IO
-import cats.effect.std.Console
 import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
+import cats.effect.std.Console
 import fs2.io.file.Path
+
 import java.nio.file.InvalidPathException
-import cats.effect.SyncIO.syncForSyncIO
 
 final case class IllegalArgs(args: List[String])
     extends Exception(

@@ -1,20 +1,22 @@
 package io.github.theqp.sensorstats
 
-import cats.effect.ExitCode
-import cats.effect.std.Console
-import fs2.io.file.Files
-import fs2.io.file.Path
-import fs2.{Pipe, Pull, Stream}
-import fs2.text
-import fs2.RaiseThrowable
-import util.chaining.scalaUtilChainingOps
 import cats.*
 import cats.data.*
-import cats.implicits.*
-import cats.kernel.CommutativeSemigroup
-import cats.kernel.CommutativeMonoid
 import cats.effect.kernel.Async
+import cats.implicits.*
+import cats.kernel.CommutativeMonoid
+import cats.kernel.CommutativeSemigroup
+import fs2.Pipe
+import fs2.Pull
+import fs2.RaiseThrowable
+import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Path
+import fs2.text
+
 import scala.collection.immutable.ArraySeq
+
+import util.chaining.scalaUtilChainingOps
 
 final case class InvalidCsvRow(row: String)
     extends Exception(
