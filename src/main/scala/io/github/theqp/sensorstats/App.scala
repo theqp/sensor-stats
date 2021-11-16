@@ -5,8 +5,8 @@ import cats.effect.IO
 import cats.effect.IOApp
 import cats.effect.std.Console
 import fs2.io.file.Path
-
-import java.nio.file.InvalidPathException
+import java.nio.file.NoSuchFileException
+import util.chaining.scalaUtilChainingOps
 
 final case class IllegalArgs(args: List[String])
     extends Exception(
@@ -25,10 +25,15 @@ object App extends IOApp:
         IO.raiseError(IllegalArgs(args))
     )
       .handleErrorWith { e =>
-        e match
-          case _: InvalidPathException | _: InvalidCsvRow =>
-            Console[IO]
-              .errorln(e.getMessage)
-              .as(ExitCode.Error)
-          case e => IO.raiseError(e)
+        e.pipe {
+          case e: NoSuchFileException =>
+            Some(s"Cannot access '${e.getFile}': No such directory")
+          case e: IllegalArgs =>
+            Some(e.getMessage())
+          case _ => None
+        }.pipe {
+          case Some(msg) => Console[IO].errorln(msg).as(ExitCode.Error)
+          case None      => IO.raiseError(e)
+        }
+
       }
