@@ -30,12 +30,12 @@ final case class Report(files: Long, fileReport: FileReport):
 Num of processed files: $files
 Num of processed measurements: ${fileReport.failedMeasurements +
     fileReport.sensorStats.valuesIterator
-      .map({
+      .map {
         case p: SensorStat.Processed =>
           p.measurementCount
         case SensorStat.OnlyFailed =>
           0
-      })
+      }
       .fold(0.toLong)(_ + _)}
 Num of failed measurements: ${fileReport.failedMeasurements}
 
@@ -152,7 +152,7 @@ private def readFileReport[F[_]: RaiseThrowable: Async](
 ): F[FileReport] =
   lines
     .through(csvRows)
-    .map({
+    .map {
       case CsvRow(name, Humidity.Processed(value)) =>
         FileReport(
           failedMeasurements = 0,
@@ -171,7 +171,7 @@ private def readFileReport[F[_]: RaiseThrowable: Async](
           failedMeasurements = 1,
           sensorStats = Map(name -> SensorStat.OnlyFailed)
         )
-    })
+    }
     .compile
     .foldMonoid
 
@@ -179,14 +179,14 @@ private def csvRows[F[_]: RaiseThrowable]: Pipe[F, String, CsvRow] =
   def parseCsvRow(row: String) =
     row
       .split(',')
-      .pipe({
+      .pipe {
         case Array(sensorName, humidity) =>
           Humidity(humidity).map(CsvRow(sensorName, _))
         case _ => None
-      })
+      }
       .toRight(InvalidCsvRow(row))
   _.pull.uncons1
-    .flatMap({
+    .flatMap {
       case Some(header, rest) =>
         Option
           .when(header != "sensor-id,humidity")(
@@ -197,6 +197,6 @@ private def csvRows[F[_]: RaiseThrowable]: Pipe[F, String, CsvRow] =
           .pull
           .echo
       case None => Pull.done
-    })
+    }
     .stream
     .rethrow
