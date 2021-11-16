@@ -30,6 +30,8 @@ object App extends IOApp:
             Some(s"Cannot access '${e.getFile}': No such directory")
           case e: IllegalArgs =>
             Some(e.getMessage())
+          case e: java.nio.file.NotDirectoryException =>
+            Some(s"${e.getFile} is not a directory")
           case _ => None
         }.pipe {
           case Some(msg) => Console[IO].errorln(msg).as(ExitCode.Error)
