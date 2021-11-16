@@ -28,7 +28,7 @@ object App extends IOApp:
         e.pipe {
           case e: NoSuchFileException =>
             Some(s"Cannot access '${e.getFile}': No such directory")
-          case e: IllegalArgs =>
+          case _: IllegalArgs | _: InvalidCsvRow =>
             Some(e.getMessage())
           case e: java.nio.file.NotDirectoryException =>
             Some(s"${e.getFile} is not a directory")
