@@ -56,3 +56,13 @@ class LibrarySuite extends CatsEffectSuite:
       )
     )
   }
+
+  test("validates header") {
+    reportFromFileLines[IO](
+      Stream
+        .emit(Stream("sensorid,humidity"))
+        .repeatN(2)
+    ).handleError(e => Left(e))
+      .assertEquals(Left(InvalidCsvRow("sensorid,humidity")))
+
+  }
