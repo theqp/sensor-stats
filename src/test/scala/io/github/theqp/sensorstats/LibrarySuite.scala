@@ -59,11 +59,16 @@ class LibrarySuite extends CatsEffectSuite:
     )
   }
   test("validates header") {
-    reportFromFileLines[IO](
-      Stream
-        .emit(Stream("sensorid,humidity"))
-        .repeatN(2)
-    ).map(Right.apply)
+    reportFromFileLines[IO](Stream.emit(Stream("sensorid,humidity")))
+      .map(Right.apply)
       .handleError(Left.apply)
       .assertEquals(Left(InvalidCsvRow("sensorid,humidity")))
+  }
+  test("rows can only consist of two columns") {
+    reportFromFileLines[IO](
+      Stream
+        .emit(Stream("sensor-id,humidity", "foo,1,2"))
+    ).map(Right.apply)
+      .handleError(Left.apply)
+      .assertEquals(Left(InvalidCsvRow("foo,1,2")))
   }
