@@ -212,7 +212,6 @@ class LibrarySuite extends CatsEffectSuite:
       )
     )
   }
-
   test("averages are calculated precisely") {
     IO.pure(SensorStat.Processed(1, 5, 3, 7).avg)
       .assertEquals(BigDecimal(7) / 3)
