@@ -17,6 +17,7 @@ import fs2.text
 import scala.collection.immutable.ArraySeq
 
 import util.chaining.scalaUtilChainingOps
+import scala.collection.immutable.SortedMap
 
 final case class InvalidCsvRow(row: String)
     extends Exception(
@@ -47,8 +48,10 @@ sensor-id,min,avg,max
 """).append(
     Stream
       .emits(
-        // sort by the value and then the key
-        fileReport.sensorStats.to(ArraySeq).sorted(Ordering.by(_.swap))
+        // sort by average, if they are the same then key ordering applies
+        fileReport.sensorStats
+          .to(ArraySeq)
+          .sorted(Ordering.by((_, stat) => stat))
       )
       .map((id, stat) =>
         s"$id,${stat match
@@ -71,10 +74,10 @@ given CommutativeMonoid[Report] with
 private type SensorName = String
 private final case class FileReport(
     failedMeasurements: Long,
-    sensorStats: Map[SensorName, SensorStat]
+    sensorStats: SortedMap[SensorName, SensorStat]
 )
 private given CommutativeMonoid[FileReport] with
-  val empty = FileReport(0, Map.empty)
+  val empty = FileReport(0, SortedMap.empty)
   def combine(x: FileReport, y: FileReport): FileReport =
     FileReport(
       failedMeasurements = x.failedMeasurements + y.failedMeasurements,
@@ -163,7 +166,7 @@ private def readFileReport[F[_]: RaiseThrowable: Async](
       case CsvRow(name, Humidity.Processed(value)) =>
         FileReport(
           failedMeasurements = 0,
-          sensorStats = Map(
+          sensorStats = SortedMap(
             name ->
               SensorStat.Processed(
                 min = value,
@@ -176,7 +179,7 @@ private def readFileReport[F[_]: RaiseThrowable: Async](
       case CsvRow(name, Humidity.Failed) =>
         FileReport(
           failedMeasurements = 1,
-          sensorStats = Map(name -> SensorStat.OnlyFailed)
+          sensorStats = SortedMap(name -> SensorStat.OnlyFailed)
         )
     }
     .compile
