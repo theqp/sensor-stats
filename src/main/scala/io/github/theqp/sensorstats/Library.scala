@@ -105,12 +105,15 @@ private given CommutativeSemigroup[SensorStat] with
 private given Ordering[SensorStat] with
   def compare(x: SensorStat, y: SensorStat): Int =
     import SensorStat.*
-    (x, y) match
-      case (OnlyFailed, OnlyFailed) => 0
-      case (_, OnlyFailed)          => -1
-      case (OnlyFailed, _)          => 1
-      case (x: Processed, y: Processed) =>
-        y.measurementCount.compare(x.measurementCount)
+    x match
+      case x: Processed =>
+        y match
+          case y: Processed => y.measurementCount.compare(x.measurementCount)
+          case OnlyFailed   => -1
+      case OnlyFailed =>
+        y match
+          case _: Processed => 1
+          case OnlyFailed   => 0
 
 private enum Humidity:
   case Processed(value: Byte)
