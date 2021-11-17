@@ -11,7 +11,7 @@ import munit.CatsEffectSuite
 import scala.collection.immutable.TreeMap
 
 class LibrarySuite extends CatsEffectSuite:
-  test("can read csvs from the provided path") {
+  test("reads correctly the example csvs") {
     reportFromPath[IO](Path("example_csvs")).assertEquals(
       Report(
         files = 2,
