@@ -1,12 +1,14 @@
 package io.github.theqp.sensorstats
 
-import cats.effect.{IO, SyncIO}
-import munit.CatsEffectSuite
-import fs2.io.file.Path
-import scala.collection.immutable.TreeMap
+import cats.effect.IO
+import cats.effect.SyncIO
 import cats.effect.kernel.Resource.Pure
-import fs2.io.file.Files
 import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Path
+import munit.CatsEffectSuite
+
+import scala.collection.immutable.TreeMap
 
 class LibrarySuite extends CatsEffectSuite:
   test("can read csvs from the provided path") {
@@ -56,13 +58,12 @@ class LibrarySuite extends CatsEffectSuite:
       )
     )
   }
-
   test("validates header") {
     reportFromFileLines[IO](
       Stream
         .emit(Stream("sensorid,humidity"))
         .repeatN(2)
-    ).handleError(e => Left(e))
+    ).map(Right.apply)
+      .handleError(Left.apply)
       .assertEquals(Left(InvalidCsvRow("sensorid,humidity")))
-
   }
