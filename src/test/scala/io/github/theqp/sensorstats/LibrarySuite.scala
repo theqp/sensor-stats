@@ -186,3 +186,34 @@ class LibrarySuite extends CatsEffectSuite:
       )
     )
   }
+  test("failed measurements are overrided by succesful ones") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,NaN", "s,1"))
+    ).assertEquals(
+      Report(
+        files = 1,
+        fileReport = FileReport(
+          failedMeasurements = 1,
+          sensorStats = TreeMap("s" -> SensorStat.Processed(1, 1, 1, 1))
+        )
+      )
+    )
+  }
+  test("succesful measurements are not overrided by failed ones") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,1", "s,NaN"))
+    ).assertEquals(
+      Report(
+        files = 1,
+        fileReport = FileReport(
+          failedMeasurements = 1,
+          sensorStats = TreeMap("s" -> SensorStat.Processed(1, 1, 1, 1))
+        )
+      )
+    )
+  }
+
+  test("averages are calculated precisely") {
+    IO.pure(SensorStat.Processed(1, 5, 3, 7).avg)
+      .assertEquals(BigDecimal(7) / 3)
+  }
