@@ -90,6 +90,8 @@ private enum SensorStat:
       measurementCount: Long,
       measurementSum: Long
   )
+extension (s: SensorStat.Processed)
+  def avg: BigDecimal = BigDecimal(s.measurementSum) / s.measurementCount
 private given CommutativeSemigroup[SensorStat] with
   def combine(x: SensorStat, y: SensorStat): SensorStat =
     (x, y) match
@@ -108,7 +110,7 @@ private given Ordering[SensorStat] with
     x match
       case x: Processed =>
         y match
-          case y: Processed => y.measurementCount.compare(x.measurementCount)
+          case y: Processed => y.avg.compare(x.avg)
           case OnlyFailed   => -1
       case OnlyFailed =>
         y match
