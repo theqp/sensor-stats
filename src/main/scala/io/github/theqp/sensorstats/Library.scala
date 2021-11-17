@@ -56,11 +56,12 @@ sensor-id,min,avg,max
           case SensorStat.OnlyFailed =>
             "NaN,NaN,NaN" // Batman!
           case p: SensorStat.Processed =>
-            val rounding = BigDecimal.RoundingMode.HALF_UP;
-            s"${p.min},${p.avg
-              .setScale(2, rounding)
-              .bigDecimal
-              .stripTrailingZeros},${p.max}"
+            val avg =
+              p.avg
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+                .bigDecimal
+                .stripTrailingZeros
+            s"${p.min},${avg},${p.max}"
         }\n"
       )
   )
