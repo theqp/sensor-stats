@@ -159,7 +159,7 @@ class LibrarySuite extends CatsEffectSuite:
       )
     )
   }
-  test("failed measurements do increment betweem files") {
+  test("failed measurements do increment through files") {
     reportFromFileLines[IO](
       Stream.emit(Stream("sensor-id,humidity", "s,NaN")).repeatN(2)
     ).assertEquals(
@@ -172,7 +172,7 @@ class LibrarySuite extends CatsEffectSuite:
       )
     )
   }
-  test("failed measurements do increment betweem sensors") {
+  test("failed measurements do increment through sensors") {
     reportFromFileLines[IO](
       Stream.emit(Stream("sensor-id,humidity", "s,NaN", "s2,NaN"))
     ).assertEquals(
