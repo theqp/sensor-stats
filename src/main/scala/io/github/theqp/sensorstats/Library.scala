@@ -26,20 +26,22 @@ final case class InvalidCsvRow(row: String)
 
 /** a report created after processing all files */
 final case class Report(files: Long, fileReport: FileReport):
+  def processedMeasurements: BigInt =
+    fileReport.failedMeasurements +
+      fileReport.sensorStats.valuesIterator
+        .map {
+          case p: SensorStat.Processed =>
+            p.measurementCount
+          case SensorStat.OnlyFailed =>
+            0
+        }
+        .fold(0.toLong)(_ + _)
   /* this could be implemented doing one iteration,
    * but would require storing measurementCount for all sensors
    */
   def toStat[F[_]](): Stream[F, String] = Stream(s"""
 Num of processed files: $files
-Num of processed measurements: ${fileReport.failedMeasurements +
-    fileReport.sensorStats.valuesIterator
-      .map {
-        case p: SensorStat.Processed =>
-          p.measurementCount
-        case SensorStat.OnlyFailed =>
-          0
-      }
-      .fold(0.toLong)(_ + _)}
+Num of processed measurements: ${processedMeasurements}
 Num of failed measurements: ${fileReport.failedMeasurements}
 
 Sensors with highest avg humidity:
@@ -47,12 +49,7 @@ Sensors with highest avg humidity:
 sensor-id,min,avg,max
 """).append(
     Stream
-      .emits(
-        // sort by average, if they are the same then key ordering applies
-        fileReport.sensorStats
-          .to(ArraySeq)
-          .sorted(Ordering.by((_, stat) => stat))
-      )
+      .emits(fileReport.sortedStats)
       .map((id, stat) =>
         s"$id,${stat match
           case SensorStat.OnlyFailed =>
@@ -75,7 +72,13 @@ private type SensorName = String
 private final case class FileReport(
     failedMeasurements: Long,
     sensorStats: SortedMap[SensorName, SensorStat]
-)
+):
+  def sortedStats: ArraySeq[(SensorName, SensorStat)] =
+    // sort by average, if they are the same then key ordering applies
+    sensorStats
+      .to(ArraySeq)
+      .sorted(Ordering.by((_, stat) => stat))
+
 private given CommutativeMonoid[FileReport] with
   val empty = FileReport(0, SortedMap.empty)
   def combine(x: FileReport, y: FileReport): FileReport =
