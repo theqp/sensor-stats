@@ -72,3 +72,117 @@ class LibrarySuite extends CatsEffectSuite:
       .handleError(Left.apply)
       .assertEquals(Left(InvalidCsvRow("foo,1,2")))
   }
+  test("second column only can be an integer") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "foo,1.0"))
+    ).map(Right.apply)
+      .handleError(Left.apply)
+      .assertEquals(Left(InvalidCsvRow("foo,1.0")))
+  }
+  test("second column must not be larger than 100") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "foo,101"))
+    ).map(Right.apply)
+      .handleError(Left.apply)
+      .assertEquals(Left(InvalidCsvRow("foo,101")))
+  }
+  test("second column must not be smaller than 0") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "foo,-1"))
+    ).map(Right.apply)
+      .handleError(Left.apply)
+      .assertEquals(Left(InvalidCsvRow("foo,-1")))
+  }
+  test("second column can be 0") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,0"))
+    ).assertEquals(
+      Report(
+        files = 1,
+        fileReport = FileReport(
+          failedMeasurements = 0,
+          sensorStats = TreeMap(
+            "s" -> SensorStat.Processed(
+              min = 0,
+              max = 0,
+              measurementCount = 1,
+              measurementSum = 0
+            )
+          )
+        )
+      )
+    )
+  }
+  test("second column can be 100") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,100"))
+    ).assertEquals(
+      Report(
+        files = 1,
+        fileReport = FileReport(
+          failedMeasurements = 0,
+          sensorStats = TreeMap(
+            "s" -> SensorStat.Processed(
+              min = 100,
+              max = 100,
+              measurementCount = 1,
+              measurementSum = 100
+            )
+          )
+        )
+      )
+    )
+  }
+  test("second column can be NaN") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,NaN"))
+    ).assertEquals(
+      Report(
+        files = 1,
+        fileReport = FileReport(
+          failedMeasurements = 1,
+          sensorStats = TreeMap("s" -> SensorStat.OnlyFailed)
+        )
+      )
+    )
+  }
+  test("failed measurements do increment") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,NaN", "s,NaN"))
+    ).assertEquals(
+      Report(
+        files = 1,
+        fileReport = FileReport(
+          failedMeasurements = 2,
+          sensorStats = TreeMap("s" -> SensorStat.OnlyFailed)
+        )
+      )
+    )
+  }
+  test("failed measurements do increment betweem files") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,NaN")).repeatN(2)
+    ).assertEquals(
+      Report(
+        files = 2,
+        fileReport = FileReport(
+          failedMeasurements = 2,
+          sensorStats = TreeMap("s" -> SensorStat.OnlyFailed)
+        )
+      )
+    )
+  }
+  test("failed measurements do increment betweem sensors") {
+    reportFromFileLines[IO](
+      Stream.emit(Stream("sensor-id,humidity", "s,NaN", "s2,NaN"))
+    ).assertEquals(
+      Report(
+        files = 1,
+        fileReport = FileReport(
+          failedMeasurements = 2,
+          sensorStats =
+            TreeMap("s" -> SensorStat.OnlyFailed, "s2" -> SensorStat.OnlyFailed)
+        )
+      )
+    )
+  }
