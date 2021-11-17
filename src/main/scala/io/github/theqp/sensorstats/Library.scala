@@ -68,8 +68,8 @@ given CommutativeMonoid[Report] with
       fileReport = x.fileReport.combine(y.fileReport)
     )
 
-private type SensorName = String
-private final case class FileReport(
+type SensorName = String
+final case class FileReport(
     failedMeasurements: Long,
     sensorStats: SortedMap[SensorName, SensorStat]
 ):
@@ -88,7 +88,7 @@ private given CommutativeMonoid[FileReport] with
     )
 
 /** Reduce memory usage by avoiding Either/Option. */
-private enum SensorStat:
+enum SensorStat:
   case OnlyFailed
   case Processed(
       min: Byte,
