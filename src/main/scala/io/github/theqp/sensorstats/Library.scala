@@ -151,18 +151,18 @@ def reportFromPath[F[_]: RaiseThrowable: Async](
     .pipe(reportFromFileLines)
 
 /** raises InvalidCsvFileLine in case of invalid input */
-def reportFromFileLines[F[_]: RaiseThrowable: Async](
+def reportFromFileLines[F[_]: RaiseThrowable](
     files: Stream[F, Stream[F, String]]
-): F[Report] =
+)(using fs2.Compiler[F, F]): F[Report] =
   files
     .evalMap(readFileReport[F])
     .map(Report(files = 1, _))
     .compile
     .foldMonoid
 
-private def readFileReport[F[_]: RaiseThrowable: Async](
+private def readFileReport[F[_]: RaiseThrowable](
     lines: Stream[F, String]
-): F[FileReport] =
+)(using fs2.Compiler[F, F]): F[FileReport] =
   lines
     .through(csvRows)
     .map {
