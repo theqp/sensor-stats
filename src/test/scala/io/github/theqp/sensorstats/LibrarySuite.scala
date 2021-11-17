@@ -252,3 +252,26 @@ s1,10,54,98
 s3,NaN,NaN,NaN
 """)
   }
+
+  test("averages are show with 2 precisions when decimals are available") {
+    Report(
+      files = 1,
+      fileReport = FileReport(
+        failedMeasurements = 0,
+        sensorStats = TreeMap(
+          "s" -> SensorStat.Processed(1, 5, 3, 7)
+        )
+      )
+    ).toStat[IO]()
+      .compile
+      .fold("")(_ + _)
+      .assertEquals("""Num of processed files: 1
+Num of processed measurements: 3
+Num of failed measurements: 0
+
+Sensors with highest avg humidity:
+
+sensor-id,min,avg,max
+s,1,2.33,5
+""")
+  }
