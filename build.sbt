@@ -9,5 +9,7 @@ lazy val root = project
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-effect" % "3.2.9",
   "co.fs2" %% "fs2-core" % "3.2.2",
-  "co.fs2" %% "fs2-io" % "3.2.2"
+  "co.fs2" %% "fs2-io" % "3.2.2",
+  "org.typelevel" %% "munit-cats-effect-3" % "1.0.6" % Test,
+  "org.scalameta" %% "munit" % "0.7.29" % Test
 )
