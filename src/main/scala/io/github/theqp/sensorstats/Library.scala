@@ -55,7 +55,7 @@ sensor-id,min,avg,max
           case SensorStat.OnlyFailed =>
             "NaN,NaN,NaN" // Batman!
           case p: SensorStat.Processed =>
-            s"${p.min},${p.measurementSum / p.measurementCount},${p.max}"
+            s"${p.min},${p.avg},${p.max}"
         }\n"
       )
   )
