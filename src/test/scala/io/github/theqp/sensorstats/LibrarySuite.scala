@@ -275,3 +275,26 @@ sensor-id,min,avg,max
 s,1,2.33,5
 """)
   }
+
+  test("average is displayed not in exponential form") {
+    Report(
+      files = 1,
+      fileReport = FileReport(
+        failedMeasurements = 0,
+        sensorStats = TreeMap(
+          "s" -> SensorStat.Processed(100, 100, 1, 100)
+        )
+      )
+    ).toStat[IO]()
+      .compile
+      .fold("")(_ + _)
+      .assertEquals("""Num of processed files: 1
+Num of processed measurements: 1
+Num of failed measurements: 0
+
+Sensors with highest avg humidity:
+
+sensor-id,min,avg,max
+s,100,100,100
+""")
+  }

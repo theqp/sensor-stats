@@ -61,6 +61,7 @@ sensor-id,min,avg,max
                 .setScale(2, BigDecimal.RoundingMode.HALF_UP)
                 .bigDecimal
                 .stripTrailingZeros
+                .toPlainString
             s"${p.min},${avg},${p.max}"
         }\n"
       )
