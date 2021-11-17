@@ -216,3 +216,39 @@ class LibrarySuite extends CatsEffectSuite:
     IO.pure(SensorStat.Processed(1, 5, 3, 7).avg)
       .assertEquals(BigDecimal(7) / 3)
   }
+  test("generates report in the format specified in example") {
+    Report(
+      files = 2,
+      fileReport = FileReport(
+        failedMeasurements = 2,
+        sensorStats = TreeMap(
+          "s1" -> SensorStat.Processed(
+            min = 10,
+            max = 98,
+            measurementCount = 2,
+            measurementSum = 108
+          ),
+          "s2" -> SensorStat.Processed(
+            min = 78,
+            max = 88,
+            measurementCount = 3,
+            measurementSum = 246
+          ),
+          "s3" -> SensorStat.OnlyFailed
+        )
+      )
+    ).toStat[IO]()
+      .compile
+      .fold("")(_ + _)
+      .assertEquals("""Num of processed files: 2
+Num of processed measurements: 7
+Num of failed measurements: 2
+
+Sensors with highest avg humidity:
+
+sensor-id,min,avg,max
+s2,78,82,88
+s1,10,54,98
+s3,NaN,NaN,NaN
+""")
+  }

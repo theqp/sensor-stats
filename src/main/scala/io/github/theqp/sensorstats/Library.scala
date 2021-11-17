@@ -39,15 +39,16 @@ final case class Report(files: Long, fileReport: FileReport):
   /* this could be implemented doing one iteration,
    * but would require storing measurementCount for all sensors
    */
-  def toStat[F[_]](): Stream[F, String] = Stream(s"""
-Num of processed files: $files
+  def toStat[F[_]](): Stream[F, String] = Stream(
+    s"""Num of processed files: $files
 Num of processed measurements: ${processedMeasurements}
 Num of failed measurements: ${fileReport.failedMeasurements}
 
 Sensors with highest avg humidity:
 
 sensor-id,min,avg,max
-""").append(
+"""
+  ).append(
     Stream
       .emits(fileReport.sortedStats)
       .map((id, stat) =>
